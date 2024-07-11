@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { hero, logo, Google } from "@/assets/images";
 import { AuthSessionResult } from "expo-auth-session";
+import colors from "@/colors";
 
 type promptAsyncProp = {
   promptAsync: () => Promise<AuthSessionResult>;
@@ -14,9 +15,10 @@ const Login = ({ promptAsync }: promptAsyncProp) => {
   
   return (
     <LinearGradient
-      colors={["#4D62B3", "#849BDA"]}
-      locations={[0, 0]}
       className="flex-1"
+      colors={[colors.gradientLogin, colors.gradient2Login]}
+      // style={styles.background}
+      locations={[0.999, 1]}
     >
       <View className="flex-1">
         <View className="flex-1 justify-end items-center">
