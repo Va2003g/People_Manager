@@ -11,6 +11,8 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from '@/backend/Firebase';
 import { router } from 'expo-router';
+import { Route } from '@/routes';
+WebBrowser.maybeCompleteAuthSession();
 const App = () => {
   const [userInFo, setUserInfo] = useState<Object>();
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -18,15 +20,12 @@ const App = () => {
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
   }); 
   const checkUserFromLocalStorage = async () => {
-    // setLoading(true);
     try {
       let user: string | null | object = await AsyncStorage.getItem("userInfo");
       user = user ? JSON.parse(user) : null;
       if (user != null) {
         console.log('user from local storage: ', user)
-        setUserInfo(user);
-        // if(typeof user!=='string')
-        // // updateUser(user);
+        router.push(Route.DASHBOARD)
       }
     } catch (err) {
       console.log(err);
@@ -55,9 +54,9 @@ const App = () => {
     try {
       const unsub = onAuthStateChanged(auth, async (user) => {
         if (user) {
-          // if (Platform.OS === "android")
             console.log("user", JSON.stringify(user));
           await AsyncStorage.setItem("userInfo", JSON.stringify(user));
+          router.push(Route.DASHBOARD)
         } else {
           setUserInfo("");
           console.log("no one is logged in");

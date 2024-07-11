@@ -1,11 +1,10 @@
-import { View, Text } from 'react-native'
-import React from 'react'
-import { Slot } from 'expo-router'
+import { View, Text, StatusBar } from "react-native";
+import React from "react";
+import { Slot } from "expo-router";
 
 const main = () => {
-  return (
-    <Slot/>
-  )
-}
+  <StatusBar barStyle={"light-content"} />;
+  return <Slot />;
+};
 
-export default main
+export default main;
