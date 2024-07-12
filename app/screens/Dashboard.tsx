@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
-import React from "react";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import React, { useEffect } from "react";
 import {
   AntDesign,
   Entypo,
@@ -8,8 +8,13 @@ import {
   Ionicons,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { Route } from "@/routes";
 
 export const Dashboard = () => {
+  useEffect(()=>{
+    
+  },[])
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -28,14 +33,14 @@ export const Dashboard = () => {
         />
         <Text style={styles.text}>Profile</Text>
       </View>
-      <View style={styles.card}>
+      <Pressable style={styles.card} onPress={()=>router.push(Route.TIME_SHEET)}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <AntDesign
           name="clockcircle"
           style={[styles.mainIcon, { color: "orange" }]}
         />
         <Text style={styles.text}>Time Sheet</Text>
-      </View>
+      </Pressable>
       <View style={styles.card}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <FontAwesome5

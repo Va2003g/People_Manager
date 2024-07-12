@@ -9,16 +9,30 @@ import {
   signInWithCredential,
 } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { auth } from '@/backend/Firebase';
+import { auth, db } from '@/backend/Firebase';
 import { router } from 'expo-router';
 import { Route } from '@/routes';
+import {
+  query,
+  collection,
+  where,
+  getDocs,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
+
+import { useDispatch } from "react-redux";
+import { update } from "../Redux/UserDataSlice";
+
 WebBrowser.maybeCompleteAuthSession();
 const App = () => {
+  const dispatch = useDispatch();
   const [userInFo, setUserInfo] = useState<Object>();
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_IOS_CLIENT_ID,
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
   }); 
+
   const checkUserFromLocalStorage = async () => {
     try {
       let user: string | null | object = await AsyncStorage.getItem("userInfo");
@@ -54,6 +68,27 @@ const App = () => {
     try {
       const unsub = onAuthStateChanged(auth, async (user) => {
         if (user) {
+          const queryForFindingUser = query(
+            collection(db, "Employees"),
+            where("email", "==", user.email)
+          );
+          const querySnapshot = await getDocs(queryForFindingUser);
+  
+          if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            const userRef = doc(db, "Employees", userDoc.id);
+  
+            // Update the photoURL in the backend
+            await updateDoc(userRef, { photoURL:user.photoURL });
+  
+            // Dispatch the updated user data
+            const updatedUserData = {
+              ...userDoc.data(),
+              photoURL:user.photoURL,
+            };
+            dispatch(update(updatedUserData));
+            // dispatch(update(userDoc.data()));
+          }
             console.log("user", JSON.stringify(user));
           await AsyncStorage.setItem("userInfo", JSON.stringify(user));
           router.push(Route.DASHBOARD)

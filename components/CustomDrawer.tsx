@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Pressable, Button } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import colors from "../colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
@@ -11,17 +11,17 @@ import { auth } from "../backend/Firebase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "firebase/auth";
 import { Route } from "@/routes";
+import { useSelector } from "react-redux";
+import { RootState } from "@/Redux/store";
 // import { observer } from "mobx-react";
 // import { Store } from "@/MobX/store";
 export const CustomDrawer = (props: DrawerContentComponentProps) => {
-  // console.log('user',Store.User.displayName);
-  // const [fontsLoaded, fontError] = useFonts({
-  //   Roboto_700Bold,Roboto_500Medium
-  // });
+  const User = useSelector((state:RootState)=>state.userData.data)
+  console.log('User in : ', User)
+  // useEffect(()=>{
 
-  // if (!fontsLoaded && !fontError) {
-  //   return null;
-  // }
+  //   console.log('User in : ', User)
+  // },[User])
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
@@ -30,8 +30,8 @@ export const CustomDrawer = (props: DrawerContentComponentProps) => {
           style={styles.gradientWindow}
         >
           {/* Typescript error user is of type object */}
-          {/* <Image source={Store.User.photoURL} style={styles.image} />
-          <Text style={styles.name}>{Store.User.displayName}</Text> */}
+          <Image source={User.photoURL} style={styles.image} />
+          <Text style={styles.name}>{User.firstName + ' ' + User.lastName}</Text>
         </LinearGradient>
         <View style={styles.content}>
           {props.state.routes.map((routeName, index) => {
