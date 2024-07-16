@@ -20,6 +20,7 @@ export interface formDataType {
 }
 interface UserState {
   data: formDataType;
+  id:string,
 }
 const initialState: UserState = {
   data: {
@@ -36,6 +37,7 @@ const initialState: UserState = {
     postalCode: "",
     photoURL: "",
   },
+  id:'',
 }
 
 export const userSlice = createSlice({
@@ -46,8 +48,12 @@ export const userSlice = createSlice({
       state.data = action.payload;
       console.log('action.payload: ', action.payload)
     },
+    updateId: (state, action) => {
+      state.id = action.payload;
+      console.log('action.payload: ', action.payload)
+    },
   },
 });
 
-export const { update } = userSlice.actions;
+export const { update,updateId } = userSlice.actions;
 export default userSlice.reducer;

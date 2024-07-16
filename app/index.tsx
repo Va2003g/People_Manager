@@ -22,7 +22,7 @@ import {
 } from "firebase/firestore";
 
 import { useDispatch } from "react-redux";
-import { update } from "../Redux/UserDataSlice";
+import { update, updateId } from "../Redux/UserDataSlice";
 
 WebBrowser.maybeCompleteAuthSession();
 const App = () => {
@@ -77,6 +77,7 @@ const App = () => {
           if (!querySnapshot.empty) {
             const userDoc = querySnapshot.docs[0];
             const userRef = doc(db, "Employees", userDoc.id);
+            dispatch(updateId(userDoc.id));
   
             // Update the photoURL in the backend
             await updateDoc(userRef, { photoURL:user.photoURL });

@@ -25,14 +25,14 @@ export const Dashboard = () => {
         />
         <Text style={styles.text}>Projects</Text>
       </View>
-      <View style={styles.card}>
+      <Pressable style={styles.card} onPress={()=>router.push(Route.PROFILE)}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <FontAwesome5
           name="user-tie"
           style={[styles.mainIcon, { color: "blue" }]}
         />
         <Text style={styles.text}>Profile</Text>
-      </View>
+      </Pressable>
       <Pressable style={styles.card} onPress={()=>router.push(Route.TIME_SHEET)}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <AntDesign

@@ -2,7 +2,7 @@ export enum Route {
     DASHBOARD='screens/Dashboard',
     LOGIN_PAGE='/Login',
     ADD_EMPLOYEE = '/addEmployee',
-    PROFILE = 'screens/profile',
+    PROFILE = 'screens/Profile',
     PROJECT ='screens/project',
     TIME_SHEET = 'screens/TimeSheet',
     LEAVE_TRACKER = 'screens/leaves',
