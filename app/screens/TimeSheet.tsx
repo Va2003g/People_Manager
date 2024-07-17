@@ -17,18 +17,19 @@ import {
   query,
   where,
   onSnapshot,
+  addDoc,
 } from "firebase/firestore";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
 import DatePicker from "react-native-date-picker";
 
 export interface TimeSheetDataType {
-  date: string;
   projectName: string;
   description: string;
   time: string;
 }
 const TimeSheet = () => {
+  const [timeSheetDate, setTimeSheetDate] = useState<Date>(new Date());
   const [isAttendanceMarked, setIsAttendanceMarked] = useState(false);
   const userId = useSelector((state: RootState) => state.userData.id);
   const [timeSheet, setTimeSheet] = useState<TimeSheetDataType[]>([]);
@@ -36,35 +37,11 @@ const TimeSheet = () => {
     (state: RootState) => state.projectData.projectData
   );
   const [timeSheetData, setTimeSheetData] = useState<TimeSheetDataType>({
-    date: new Date().toISOString(),
     projectName: "",
     description: "",
     time: "",
   });
   const dispatch = useDispatch();
-  //   useEffect(() => {
-  //     const fetchProjects = async () => {
-  //       try {
-  //         const projectsQuery = query(
-  //           collection(db, "Projects"),
-  //           where("employeeId", "==", userId)
-  //         );
-  //         const projectsDocs = await getDocs(projectsQuery);
-  //         const projectsData: ProjectData[] = [];
-
-  //         if (!projectsDocs.empty) {
-  //           projectsDocs.docs.forEach((project) => {
-  //             projectsData.push(project.data() as ProjectData);
-  //           });
-  //         }
-  //         dispatch(updateNewProject(projectsData));
-  //       } catch (error) {
-  //         console.error("Error fetching projects: ", error);
-  //       }
-  //     };
-
-  //     fetchProjects();
-  //   }, [dispatch]);
   useEffect(() => {
     const projectsQuery = query(
       collection(db, "Projects"),
@@ -87,11 +64,6 @@ const TimeSheet = () => {
     return () => unsubscribe();
   }, [dispatch, userId]);
   function handleChange(name: string, value: string) {
-    console.log("value: ", value);
-    console.log("name: ", name);
-    if (name === "date") {
-      value = value.split("T")[0];
-    }
     setTimeSheetData((prevstate) => ({
       ...prevstate,
       [name]: value,
@@ -100,25 +72,55 @@ const TimeSheet = () => {
 
   async function saveTimeSheet() {
     console.log("timeSheetData", timeSheetData);
-    // await addDoc(collection(db, "Timesheet"), timeSheetData);
+    await addDoc(collection(db, "Timesheet"), {
+      employeeId: userId,
+      date: timeSheetDate.toLocaleDateString().split("T")[0],
+      ...timeSheetData,
+    });
     const tempTimeSheetArray = [];
     tempTimeSheetArray.push(timeSheetData);
     setTimeSheet(tempTimeSheetArray);
     setTimeSheetData({
-      date: "",
       projectName: "",
       description: "",
       time: "",
     });
   }
+  const getPreviousBusinessDay = (date: Date) => {
+    const day = date.getDay();
+    const prevBusinessDay = new Date(date);
 
+    if (day === 0) {
+      // Sunday
+      prevBusinessDay.setDate(date.getDate() - 2); // Go back to Friday
+    } else if (day === 1) {
+      // Monday
+      prevBusinessDay.setDate(date.getDate() - 3); // Go back to Friday
+    } else {
+      // Any other day
+      prevBusinessDay.setDate(date.getDate() - 1); // Go back to the previous day
+    }
+
+    return prevBusinessDay;
+  };
+  const today = new Date(); //"2024-07-15" monday
+  const yesterday = getPreviousBusinessDay(today);
   return (
     <ScrollView className="flex-1 bg-[#f3f4f6]">
       <View style={styles.header}>
         <Text style={styles.headerText}>Log Timesheet</Text>
       </View>
-
-      {!isAttendanceMarked && (
+      {timeSheet.length === 0 && (
+        <View className="bg-red-200 mx-3 p-4">
+          <Text className="text-red-800 text-md">
+            To Mark today's Attendance
+          </Text>
+          <Text className="text-red-800 text-md">
+            Fill TimeSheet for {yesterday.toDateString()}
+          </Text>
+        </View>
+      )}
+      {!isAttendanceMarked && timeSheet.length !== 0 && (
         <View className="flex-1 flex-row gap-7 m-2">
           <TouchableOpacity
             className="p-2 px-4 rounded-lg "
@@ -140,7 +142,7 @@ const TimeSheet = () => {
       {isAttendanceMarked && (
         <View style={styles.banner}>
           <Text style={styles.bannerText}>
-            Your attendance is marked for today as Working From Office.
+            Your attendance is marked for today.
           </Text>
         </View>
       )}
@@ -148,12 +150,10 @@ const TimeSheet = () => {
       <View style={styles.datePickerContainer}>
         <DatePicker
           mode="date"
-          date={new Date(timeSheetData.date)}
+          date={timeSheetDate}
           className="h-[100]"
           maximumDate={new Date()}
-          onDateChange={(date) => {
-            handleChange("date", date.toISOString());
-          }}
+          onDateChange={setTimeSheetDate}
         />
       </View>
 
@@ -194,7 +194,15 @@ const TimeSheet = () => {
         />
       </View>
 
-      <TouchableOpacity style={styles.saveButton} onPress={saveTimeSheet}>
+      <TouchableOpacity
+        style={[styles.saveButton, (timeSheetData.description==='' || timeSheetData.time==='' || timeSheetData.projectName==='Select Project') && styles.saveButtonDisabled]}
+        onPress={saveTimeSheet}
+        disabled={
+          timeSheetData.description === "" ||
+          timeSheetData.time === "" ||
+          timeSheetData.projectName === "Select Project"
+        }
+      >
         <Text style={styles.saveButtonText}>Save</Text>
       </TouchableOpacity>
 
@@ -214,11 +222,14 @@ const TimeSheet = () => {
           {timeSheet.length === 0 ? (
             <Text style={styles.noDataText}>No data found</Text>
           ) : (
-            <View className="flex-1 flex-row">
-              <Text>{timeSheetData.date}</Text>
-              <Text>{timeSheetData.projectName}</Text>
-              <Text>{timeSheetData.description}</Text>
-              <Text>{timeSheetData.time}</Text>
+            <View className="flex-1 flex-row gap-9">
+              <Text>{timeSheetDate.toLocaleDateString().split("T")[0]}</Text>
+              {timeSheet.map((element, index) => (
+                <Text key={index} className="flex-1">
+                  {element.projectName} {"  "} {element.description}{" "}
+                  {"          "} {element.time}
+                </Text>
+              ))}
             </View>
           )}
         </View>
@@ -338,6 +349,9 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
     color: colors.textNoData,
+  },
+  saveButtonDisabled: {
+    backgroundColor: "#6b7280", // Gray color when disabled
   },
 });
 export default TimeSheet;

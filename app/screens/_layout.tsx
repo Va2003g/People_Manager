@@ -5,9 +5,9 @@ import {Navbar,CustomDrawer} from '../../components'
 import { DrawerContentComponentProps, DrawerHeaderProps } from "@react-navigation/drawer";
 import { StatusBar } from "react-native";
 const DrawerLayout = () => {
-  <StatusBar barStyle={'light-content'}/>
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar barStyle={'light-content'}/>
       <Drawer
         initialRouteName="screens/Dashboard"
         drawerContent={(props: DrawerContentComponentProps)=>{
@@ -30,6 +30,13 @@ const DrawerLayout = () => {
           options={{
             drawerLabel: "TimeSheet",
             title: "TimeSheet",
+          }}
+        />
+        <Drawer.Screen
+          name="ShowTimeSheet"
+          options={{
+            drawerLabel: "Show TimeSheets",
+            title: "Log TimeSheet",
           }}
         />
         <Drawer.Screen
