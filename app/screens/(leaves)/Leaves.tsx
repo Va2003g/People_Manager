@@ -21,7 +21,7 @@ interface LeaveType {
   UnpaidLeft: number;
   UnpaidTotal: number;
   EmployeeId: string;
-  id:string,
+  id: string;
 }
 const DashboardItem = ({ icon, value, total, label }: DashboardPropType) => (
   <View style={styles.item}>
@@ -43,28 +43,34 @@ const Leaves = () => {
     UnpaidLeft: 0,
     UnpaidTotal: 0,
     EmployeeId: "",
-    id:''
+    id: "",
   });
   useEffect(() => {
     if (!userId) return;
 
-    const leaveQuery = query(collection(db, "Leaves Data"), where("EmployeeId", "==", userId));
+    const leaveQuery = query(
+      collection(db, "Leaves Data"),
+      where("EmployeeId", "==", userId)
+    );
 
-    const unsubscribe = onSnapshot(leaveQuery, (snapshot) => {
-      if (!snapshot.empty) {
-        const doc = snapshot.docs[0];
-        const leaveData = { id: doc.id, ...doc.data() } as LeaveType;
-        console.log("leaveData: ", leaveData);
-        setLeaves(leaveData);
+    const unsubscribe = onSnapshot(
+      leaveQuery,
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const doc = snapshot.docs[0];
+          const leaveData = { id: doc.id, ...doc.data() } as LeaveType;
+          console.log("leaveData: ", leaveData);
+          setLeaves(leaveData);
+        }
+      },
+      (error) => {
+        console.error("Error fetching leave data: ", error);
       }
-    }, (error) => {
-      console.error("Error fetching leave data: ", error);
-    });
+    );
 
     // Clean up the subscription on component unmount
     return () => unsubscribe();
   }, [userId]);
-
 
   return (
     <View style={styles.container}>

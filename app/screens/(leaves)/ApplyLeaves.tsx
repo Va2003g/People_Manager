@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
+  Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "react-native-date-picker";
@@ -13,9 +14,17 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { RootState } from "@/Redux/store";
 import { useSelector } from "react-redux";
 import { db } from "@/backend/Firebase";
-import { addDoc, collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 
-interface LeaveFormType {
+export interface LeaveFormType {
   leaveType: string;
   date: string;
   reason?: string;
@@ -49,22 +58,26 @@ const ApplyLeaves = () => {
   const applyLeave = async () => {
     try {
       // Add leave to the Leaves collection
+      if (formData.leaveType === "Sick") formData.status = "Approved";
       await addDoc(collection(db, "Leaves"), {
         ...formData,
         employeeId: userId,
         date: date.toLocaleDateString(), // Ensure the date is correctly formatted
       });
-  
+
       // Query the Leaves Data collection for the current employee
-      const leaveQuery = query(collection(db, "Leaves Data"), where("EmployeeId", "==", userId));
+      const leaveQuery = query(
+        collection(db, "Leaves Data"),
+        where("EmployeeId", "==", userId)
+      );
       const leaveDataSnap = await getDocs(leaveQuery);
-  
+
       // Check if there is any matching document
       if (!leaveDataSnap.empty) {
         leaveDataSnap.forEach(async (doc) => {
           const leaveData = doc.data();
           const updatedLeaveCount = leaveData[`${formData.leaveType}Left`] - 1;
-          
+
           // Update the leave count for the user
           await updateDoc(doc.ref, {
             [`${formData.leaveType}Left`]: updatedLeaveCount,
@@ -73,9 +86,17 @@ const ApplyLeaves = () => {
       } else {
         console.log("No matching document found");
       }
+      Alert.alert("Leave Request Send Successfully");
     } catch (error) {
       console.error("Error applying leave: ", error);
     }
+    setFormData({
+      leaveType: "",
+      date: "",
+      reason: "",
+      status: "Pending",
+      employeeId: "",
+    });
   };
 
   return (

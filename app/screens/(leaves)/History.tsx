@@ -1,60 +1,80 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, ScrollView } from "react-native";
+import { LeaveFormType } from "./ApplyLeaves";
+import { db } from "@/backend/Firebase";
+import { query, collection, where, onSnapshot } from "firebase/firestore";
+import { useSelector } from "react-redux";
+import { RootState } from "@/Redux/store";
+import { FlatList } from "react-native-gesture-handler";
 
-const LeaveCard = ({ type, date, period, status, description }) => (
+interface LeaveFormTypeWithId extends LeaveFormType {
+  id: string;
+}
+const LeaveCard = ({ item }: { item: LeaveFormTypeWithId }) => (
   <View style={styles.card}>
-    <Text style={styles.leaveType}>{type}</Text>
-    <Text style={styles.leaveDate}>
-      {date} ({period})
-    </Text>
-    <View style={[styles.statusBadge, styles[status.toLowerCase()]]}>
-      <Text style={styles.statusText}>{status}</Text>
+    <Text style={styles.leaveType}>{item.leaveType}</Text>
+    <Text style={styles.leaveDate}>{item.date}</Text>
+    <View style={[styles.statusBadge, styles[item.status]]}>
+      <Text style={styles.statusText}>{item.status}</Text>
     </View>
-    <Text style={styles.leaveDescription}>{description}</Text>
+    <Text style={styles.leaveDescription}>{item.reason}</Text>
   </View>
 );
 const History = () => {
+  const [leaves, setLeaves] = useState<LeaveFormTypeWithId[]>([]);
+  const userId = useSelector((state: RootState) => state.userData.id);
+
+  useEffect(() => {
+    const leavesQuery = query(
+      collection(db, "Leaves"),
+      where("employeeId", "==", userId)
+    );
+
+    const unsubscribe = onSnapshot(
+      leavesQuery,
+      (snapshot) => {
+        const leavesData = snapshot.docs.map(
+          (doc) =>
+            ({
+              id: doc.id,
+              ...doc.data(),
+            } as LeaveFormTypeWithId)
+        );
+        setLeaves(leavesData);
+      },
+      (error) => {
+        console.error("Error fetching leaves: ", error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [userId]);
+
+  const parseDate = (dateStr: string) => {
+    const parts = dateStr.split("/");
+    return new Date(
+      parseInt(parts[2]),
+      parseInt(parts[1]) - 1,
+      parseInt(parts[0]) + 1
+    );
+  };
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.sectionTitle}>Recent Application:</Text>
-      <LeaveCard
-        type="Annual Leave"
-        date="1 Sep 2023 - 1 Sep 2023"
-        period="Full day"
-        status="Pending"
-        description="Lorem ipsum napptermometer reskade når dekakåling kötos..."
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>New Application:</Text>
+      <FlatList
+        data={leaves.filter((leave) => parseDate(leave.date) >= new Date())}
+        // data={leaves}
+        renderItem={(item) => LeaveCard(item)}
+        keyExtractor={(item) => item.id}
       />
 
       <Text style={styles.sectionTitle}>Past Application:</Text>
-      <LeaveCard
-        type="Annual Leave"
-        date="1 Sep 2023 - 1 Sep 2023"
-        period="Half day"
-        status="Approved"
-        description="Lorem ipsum neböligt benyda diapågt rösm al. Pepulig vabenat."
+      <FlatList
+        data={leaves.filter((leave) => parseDate(leave.date) < new Date())}
+        renderItem={LeaveCard}
+        keyExtractor={(item) => item.id}
       />
-      <LeaveCard
-        type="Medical Leave"
-        date="1 Sep 2023 - 1 Sep 2023"
-        period="Full day"
-        status="Approved"
-        description="Lorem ipsum neböligt benyda diapågt rösm al. Pepulig vabenat."
-      />
-      <LeaveCard
-        type="Annual Leave"
-        date="1 Sep 2023 - 1 Sep 2023"
-        period="Full day"
-        status="Rejected"
-        description="Lorem ipsum neböligt benyda diapågt rösm al. Pepulig vabenat."
-      />
-      <LeaveCard
-        type="Annual Leave"
-        date="1 Sep 2023 - 1 Sep 2023"
-        period="Full day"
-        status="Approved"
-        description="Lorem ipsum neböligt benyda diapågt rösm al. Pepulig vabenat."
-      />
-    </ScrollView>
+    </View>
   );
 };
 
@@ -101,13 +121,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 15,
   },
-  pending: {
+  Pending: {
     backgroundColor: "#ffa500",
   },
-  approved: {
+  Approved: {
     backgroundColor: "#4caf50",
   },
-  rejected: {
+  Rejected: {
     backgroundColor: "#f44336",
   },
   statusText: {
