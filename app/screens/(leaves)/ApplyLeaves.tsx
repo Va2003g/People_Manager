@@ -10,18 +10,72 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "react-native-date-picker";
 import { MaterialIcons } from "@expo/vector-icons";
+import { RootState } from "@/Redux/store";
+import { useSelector } from "react-redux";
+import { db } from "@/backend/Firebase";
+import { addDoc, collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
+
+interface LeaveFormType {
+  leaveType: string;
+  date: string;
+  reason?: string;
+  status: "Pending" | "Approved" | "Rejected";
+  employeeId: string;
+}
 
 const ApplyLeaves = () => {
-  const [leaveType, setLeaveType] = useState("");
+  const [formData, setFormData] = useState<LeaveFormType>({
+    leaveType: "",
+    date: "",
+    reason: "",
+    status: "Pending",
+    employeeId: "",
+  });
+
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [reason, setReason] = useState("");
+  const userId = useSelector((state: RootState) => state.userData.id);
+
   const onDateChange = (selectedDate: Date) => {
     console.log("selectedDate: ", selectedDate.toLocaleDateString());
     console.log("selectedTime: ", selectedDate.toLocaleTimeString());
     const currentDate = selectedDate || date;
-    // setShowDatePicker(Platform.OS === "ios");
     setDate(currentDate);
+  };
+  const handleInputChange = (name: string, value: any) => {
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const applyLeave = async () => {
+    try {
+      // Add leave to the Leaves collection
+      await addDoc(collection(db, "Leaves"), {
+        ...formData,
+        employeeId: userId,
+        date: date.toLocaleDateString(), // Ensure the date is correctly formatted
+      });
+  
+      // Query the Leaves Data collection for the current employee
+      const leaveQuery = query(collection(db, "Leaves Data"), where("EmployeeId", "==", userId));
+      const leaveDataSnap = await getDocs(leaveQuery);
+  
+      // Check if there is any matching document
+      if (!leaveDataSnap.empty) {
+        leaveDataSnap.forEach(async (doc) => {
+          const leaveData = doc.data();
+          const updatedLeaveCount = leaveData[`${formData.leaveType}Left`] - 1;
+          
+          // Update the leave count for the user
+          await updateDoc(doc.ref, {
+            [`${formData.leaveType}Left`]: updatedLeaveCount,
+          });
+        });
+      } else {
+        console.log("No matching document found");
+      }
+    } catch (error) {
+      console.error("Error applying leave: ", error);
+    }
   };
 
   return (
@@ -33,8 +87,8 @@ const ApplyLeaves = () => {
 
       <Text style={styles.label}>Leave Type:</Text>
       <Picker
-        selectedValue={leaveType}
-        onValueChange={(itemValue) => setLeaveType(itemValue)}
+        selectedValue={formData.leaveType}
+        onValueChange={(value) => handleInputChange("leaveType", value)}
         style={styles.picker}
       >
         <Picker.Item label="Choose leave type..." value="" />
@@ -54,24 +108,28 @@ const ApplyLeaves = () => {
       {showDatePicker && (
         <DateTimePicker
           date={date}
-          mode="datetime"
-          //   display="default"
+          mode="date"
           onDateChange={onDateChange}
           className="mx-auto"
+          minimumDate={new Date()}
         />
       )}
 
-      <Text style={styles.label}>Reason:</Text>
-      <TextInput
-        style={styles.textInput}
-        multiline
-        numberOfLines={4}
-        placeholder="Enter reason..."
-        value={reason}
-        onChangeText={setReason}
-      />
+      {formData.leaveType !== "Sick" && formData.leaveType !== "" && (
+        <>
+          <Text style={styles.label}>Reason:</Text>
+          <TextInput
+            style={styles.textInput}
+            multiline
+            numberOfLines={4}
+            placeholder="Enter reason..."
+            value={formData.reason}
+            onChangeText={(text) => handleInputChange("reason", text)}
+          />
+        </>
+      )}
 
-      <TouchableOpacity style={styles.applyButton}>
+      <TouchableOpacity style={styles.applyButton} onPress={applyLeave}>
         <Text style={styles.applyButtonText}>Apply leave</Text>
       </TouchableOpacity>
     </ScrollView>
