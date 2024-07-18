@@ -3,11 +3,11 @@ export enum Route {
     LOGIN_PAGE='/Login',
     ADD_EMPLOYEE = '/addEmployee',
     PROFILE = 'screens/Profile',
-    PROJECT ='screens/project',
+    PROJECT ='screens/Project',
     TIME_SHEET = 'screens/TimeSheet',
-    LEAVE_TRACKER = 'screens/leaves',
-    ATTENDANCE = 'screens/attendance',
-    PAY_ROLL = 'screens/payroll',
-    PAY_SLIP = 'screens/payslip',
-    ANNOUCEMENTS = 'screens/annoucements'
+    LEAVE_TRACKER = 'screens/Leaves',
+    ATTENDANCE = 'screens/Attendance',
+    PAY_ROLL = 'screens/Payroll',
+    PAY_SLIP = 'screens/Payslip',
+    ANNOUCEMENTS = 'screens/Annoucements'
 }

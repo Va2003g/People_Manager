@@ -116,7 +116,7 @@ const TimeSheet = () => {
             To Mark today's Attendance
           </Text>
           <Text className="text-red-800 text-md">
-            Fill TimeSheet for {yesterday.toDateString()}
+            Kindly Fill TimeSheet for {yesterday.toDateString()}
           </Text>
         </View>
       )}
@@ -203,7 +203,7 @@ const TimeSheet = () => {
           timeSheetData.projectName === "Select Project"
         }
       >
-        <Text style={styles.saveButtonText}>Save</Text>
+        <Text style={[styles.saveButtonText,(timeSheetData.description==='' || timeSheetData.time==='' || timeSheetData.projectName==='Select Project') && styles.saveButtonTextDisabled]}>Save</Text>
       </TouchableOpacity>
 
       <View style={styles.logSection}>
@@ -352,6 +352,9 @@ const styles = StyleSheet.create({
   },
   saveButtonDisabled: {
     backgroundColor: "#6b7280", // Gray color when disabled
+  },
+  saveButtonTextDisabled: {
+    opacity: 0.5, // Make text opaque when disabled
   },
 });
 export default TimeSheet;

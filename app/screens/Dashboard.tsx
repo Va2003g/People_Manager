@@ -17,14 +17,14 @@ export const Dashboard = () => {
   },[])
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
+      <Pressable style={styles.card} onPress={()=>router.push(Route.PROJECT)}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <FontAwesome
           name="folder"
           style={[styles.mainIcon, { color: "brown" }]}
         />
         <Text style={styles.text}>Projects</Text>
-      </View>
+      </Pressable>
       <Pressable style={styles.card} onPress={()=>router.push(Route.PROFILE)}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <FontAwesome5
@@ -41,14 +41,14 @@ export const Dashboard = () => {
         />
         <Text style={styles.text}>Time Sheet</Text>
       </Pressable>
-      <View style={styles.card}>
-        <AntDesign name="infocirlceo" style={styles.infoIcon} />
+      <Pressable style={styles.card} onPress={()=>router.push(Route.LEAVE_TRACKER)}>
+        <AntDesign name="infocirlceo" style={styles.infoIcon}  />
         <FontAwesome5
           name="calendar-minus"
           style={[styles.mainIcon, { color: "green" }]}
         />
         <Text style={styles.text}>Leave Tracker</Text>
-      </View>
+      </Pressable>
       <View style={styles.card}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <FontAwesome

@@ -1,26 +1,30 @@
 import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Drawer } from "expo-router/drawer";
-import {Navbar,CustomDrawer} from '../../components'
-import { DrawerContentComponentProps, DrawerHeaderProps } from "@react-navigation/drawer";
+import { Navbar, CustomDrawer } from "../../components";
+import {
+  DrawerContentComponentProps,
+  DrawerHeaderProps,
+} from "@react-navigation/drawer";
 import { StatusBar } from "react-native";
 const DrawerLayout = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar barStyle={'light-content'}/>
+      <StatusBar barStyle={"light-content"} />
       <Drawer
         initialRouteName="screens/Dashboard"
-        drawerContent={(props: DrawerContentComponentProps)=>{
-          return <CustomDrawer {...props}/>
+        drawerContent={(props: DrawerContentComponentProps) => {
+          return <CustomDrawer {...props} />;
         }}
         screenOptions={{
           header: (props: DrawerHeaderProps) => {
-            return <Navbar {...props}/>
+            return <Navbar {...props} />;
           },
         }}
       >
         <Drawer.Screen
-          name="Dashboard" options={{
+          name="Dashboard"
+          options={{
             drawerLabel: "Dashboard",
             title: "Dashboard",
           }}
@@ -40,10 +44,24 @@ const DrawerLayout = () => {
           }}
         />
         <Drawer.Screen
+          name="Project"
+          options={{
+            drawerLabel: "Projects",
+            title: "Projects",
+          }}
+        />
+        <Drawer.Screen
+          name='(leaves)'
+          options={{
+            drawerLabel: "Leaves",
+            title: "Leaves",
+          }}
+        />
+        <Drawer.Screen
           name="Profile"
           options={{
             drawerLabel: "Profile",
-            title: "Profile",
+            title: "My Profile",
           }}
         />
       </Drawer>
@@ -52,4 +70,3 @@ const DrawerLayout = () => {
 };
 
 export default DrawerLayout;
-

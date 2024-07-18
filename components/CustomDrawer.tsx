@@ -3,8 +3,6 @@ import React, { useEffect } from "react";
 import colors from "../colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
-import { useFonts } from "expo-font";
-// import { Roboto_500Medium, Roboto_700Bold } from "@expo-google-fonts/roboto";
 import { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { auth } from "../backend/Firebase";
@@ -13,15 +11,8 @@ import { signOut } from "firebase/auth";
 import { Route } from "@/routes";
 import { useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
-// import { observer } from "mobx-react";
-// import { Store } from "@/MobX/store";
 export const CustomDrawer = (props: DrawerContentComponentProps) => {
   const User = useSelector((state:RootState)=>state.userData.data)
-  console.log('User in : ', User)
-  // useEffect(()=>{
-
-  //   console.log('User in : ', User)
-  // },[User])
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
@@ -29,7 +20,6 @@ export const CustomDrawer = (props: DrawerContentComponentProps) => {
           colors={[colors.primaryDashboard, colors.primaryDashboard2]}
           style={styles.gradientWindow}
         >
-          {/* Typescript error user is of type object */}
           <Image source={User.photoURL} style={styles.image} />
           <Text style={styles.name}>{User.firstName + ' ' + User.lastName}</Text>
         </LinearGradient>
@@ -48,7 +38,6 @@ export const CustomDrawer = (props: DrawerContentComponentProps) => {
                     colors={[colors.primaryDashboard, colors.primaryDashboard2]}
                     style={styles.drawerGradient}
                   >
-                    {/* {drawerLabel is string or a function which returns React Node containing two things or props} */}
                     <Text style={styles.name}>{drawerLabel?.toString()}</Text>
                   </LinearGradient>
                 ) : (
@@ -70,7 +59,6 @@ export const CustomDrawer = (props: DrawerContentComponentProps) => {
             onPress={async () => {
               await AsyncStorage.clear();
               await AsyncStorage.removeItem('TaskData');
-              // console.log('AsyncStorage',AsyncStorage.getAllKeys());
               await signOut(auth);
               router.push('/');
             }}
@@ -80,7 +68,6 @@ export const CustomDrawer = (props: DrawerContentComponentProps) => {
     </View>
   );
 };
-//observer will make this component to render whenever store data changes..
 export default CustomDrawer;
 
 const styles = StyleSheet.create({
@@ -91,7 +78,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 6,
     paddingLeft:20,
-    gap:23,
+    gap:15,
   },
   contentContainer: {
     flex: 5,
