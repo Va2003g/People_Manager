@@ -66,26 +66,28 @@ const ApplyLeaves = () => {
       });
 
       // Query the Leaves Data collection for the current employee
-      const leaveQuery = query(
-        collection(db, "Leaves Data"),
-        where("EmployeeId", "==", userId)
-      );
-      const leaveDataSnap = await getDocs(leaveQuery);
+      if (formData.leaveType === "Sick") {
+        const leaveQuery = query(
+          collection(db, "Leaves Data"),
+          where("EmployeeId", "==", userId)
+        );
+        const leaveDataSnap = await getDocs(leaveQuery);
 
-      // Check if there is any matching document
-      if (!leaveDataSnap.empty) {
-        leaveDataSnap.forEach(async (doc) => {
-          const leaveData = doc.data();
-          const updatedLeaveCount = leaveData[`${formData.leaveType}Left`] - 1;
+        // Check if there is any matching document
+        if (!leaveDataSnap.empty) {
+          leaveDataSnap.forEach(async (doc) => {
+            const leaveData = doc.data();
+            const updatedLeaveCount =
+              leaveData[`${formData.leaveType}Left`] - 1;
 
-          // Update the leave count for the user
-          await updateDoc(doc.ref, {
-            [`${formData.leaveType}Left`]: updatedLeaveCount,
+            // Update the leave count for the user
+            await updateDoc(doc.ref, {
+              [`${formData.leaveType}Left`]: updatedLeaveCount,
+            });
           });
-        });
-      } else {
-        console.log("No matching document found");
+        }
       }
+
       Alert.alert("Leave Request Send Successfully");
     } catch (error) {
       console.error("Error applying leave: ", error);

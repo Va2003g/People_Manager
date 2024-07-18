@@ -12,7 +12,7 @@ interface LeaveFormTypeWithId extends LeaveFormType {
 }
 const LeaveCard = ({ item }: { item: LeaveFormTypeWithId }) => (
   <View style={styles.card}>
-    <Text style={styles.leaveType}>{item.leaveType}</Text>
+    <Text style={styles.leaveType}>{item.leaveType} Leave</Text>
     <Text style={styles.leaveDate}>{item.date}</Text>
     <View style={[styles.statusBadge, styles[item.status]]}>
       <Text style={styles.statusText}>{item.status}</Text>
