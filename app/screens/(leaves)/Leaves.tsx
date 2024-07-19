@@ -75,7 +75,7 @@ const Leaves = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Dashboard</Text>
+        <Text style={styles.title}>Leaves Data</Text>
         <TouchableOpacity
           style={styles.button}
           onPress={() => router.push("/screens/(leaves)/History")}
