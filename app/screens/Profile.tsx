@@ -1,24 +1,5 @@
-// import { View, Text } from "react-native";
-// import React from "react";
-// import { RootState } from "@/Redux/store";
-// import { useSelector } from "react-redux";
-// import { Image } from "expo-image";
-
-// const Profile = () => {
-//   const User = useSelector((state: RootState) => state.userData.data);
-//   console.log("User: ", User);
-//   return (
-//     <View>
-//       <Text>Profile</Text>
-//       <Image source={User.photoURL} className="h-10 w-10 rounded-full" />
-//       <Text>{User.firstName + " " + User.lastName}</Text>
-//     </View>
-//   );
-// };
-
-// export default Profile;
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/Redux/store';
 import { Image } from 'expo-image';
@@ -31,12 +12,17 @@ const Profile = () => {
   
   const [phoneNumber, setPhoneNumber] = useState(User.contactNo);
   const [photoURL, setPhotoURL] = useState(User.photoURL);
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
 
-  const handleUpdateProfile = () => {
-    // Here you would typically make an API call to update the user's data
-    // For this example, we'll just update the Redux state
-    dispatch(updateUserData({ contactNo: phoneNumber, photoURL: photoURL }));
-    Alert.alert('Profile Updated', 'Your profile has been successfully updated.');
+  const handleUpdatePhoneNumber = () => {
+    if (isEditingPhone) {
+      // Here you would typically make an API call to update the user's phone number
+      dispatch(updateUserData({ contactNo: phoneNumber }));
+      Alert.alert('Phone Number Updated', 'Your phone number has been successfully updated.');
+      setIsEditingPhone(false);
+    } else {
+      setIsEditingPhone(true);
+    }
   };
 
   const handleChoosePhoto = async () => {
@@ -56,46 +42,75 @@ const Profile = () => {
 
     if (!pickerResult.canceled) {
       setPhotoURL(pickerResult.assets[0].uri);
+      // Here you would typically make an API call to update the user's photo URL
+      dispatch(updateUserData({ photoURL: pickerResult.assets[0].uri }));
+      Alert.alert('Photo Updated', 'Your profile photo has been successfully updated.');
     }
   };
 
+  const InfoItem = ({ label, value }: { label: string; value: string }) => (
+    <View style={styles.infoItem}>
+      <Text style={styles.infoLabel}>{label}:</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+
   return (
-    <View style={styles.container}>
-      <TouchableOpacity onPress={handleChoosePhoto}>
-        <Image 
-          source={photoURL} 
-          style={styles.profileImage}
-          contentFit="cover"
-        />
-        <Text style={styles.changePhotoText}>Change Photo</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.name}>{User.firstName + " " + User.lastName}</Text>
-      <Text style={styles.email}>{User.email}</Text>
-
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>Phone Number</Text>
-        <TextInput
-          style={styles.input}
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          keyboardType="phone-pad"
-        />
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleChoosePhoto}>
+          <Image 
+            source={photoURL} 
+            style={styles.profileImage}
+            contentFit="cover"
+          />
+          <Text style={styles.changePhotoText}>Change Photo</Text>
+        </TouchableOpacity>
+        <Text style={styles.name}>{User.firstName + " " + User.lastName}</Text>
+        <Text style={styles.email}>{User.email}</Text>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleUpdateProfile}>
-        <Text style={styles.buttonText}>Update Profile</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.infoContainer}>
+        <InfoItem label="Role" value={User.role} />
+        <InfoItem label="Date of Joining" value={User.dateOfJoining} />
+        <InfoItem label="Country" value={User.country} />
+        <InfoItem label="State" value={User.state} />
+        <InfoItem label="City" value={User.city} />
+        <InfoItem label="Postal Code" value={User.postalCode} />
+        <InfoItem label="Address" value={User.address} />
+        
+        <View style={styles.phoneContainer}>
+          <Text style={styles.infoLabel } className='mr-9'>Phone Number:</Text>
+          {isEditingPhone ? (
+            <TextInput
+              style={styles.phoneInput}
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+            />
+          ) : (
+            <Text style={styles.infoValue}>{phoneNumber}</Text>
+          )}
+          <TouchableOpacity style={styles.phoneButton} onPress={handleUpdatePhoneNumber}>
+            <Text style={styles.phoneButtonText}>
+              {isEditingPhone ? 'Save' : 'Edit'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  header: {
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
   },
   profileImage: {
     width: 150,
@@ -116,32 +131,46 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 16,
     color: '#666',
-    marginBottom: 20,
   },
-  inputContainer: {
-    width: '100%',
-    marginBottom: 20,
+  infoContainer: {
+    padding: 20,
+    gap:19,
   },
-  label: {
-    fontSize: 16,
-    marginBottom: 5,
+  infoItem: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    gap:41,
   },
-  input: {
+  infoLabel: {
+    fontWeight: 'bold',
+    width: 150,
+    fontSize:20,
+  },
+  infoValue: {
+    flex: 1,
+    fontSize:20,
+  },
+  phoneContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  phoneInput: {
+    flex: 1,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 5,
-    padding: 10,
-    fontSize: 16,
+    padding: 5,
+    marginRight: 10,
   },
-  button: {
+  phoneButton: {
     backgroundColor: '#3498db',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 5,
   },
-  buttonText: {
+  phoneButtonText: {
     color: '#fff',
-    fontSize: 18,
     fontWeight: 'bold',
   },
 });
