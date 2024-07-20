@@ -28,7 +28,7 @@ export interface TimeSheetDataType {
   description: string;
   time: string;
 }
-const TimeSheet = () => {
+export const TimeSheet = () => {
   const [timeSheetDate, setTimeSheetDate] = useState<Date>(new Date());
   const [isAttendanceMarked, setIsAttendanceMarked] = useState(false);
   const userId = useSelector((state: RootState) => state.userData.id);
@@ -105,6 +105,17 @@ const TimeSheet = () => {
   };
   const today = new Date(); //"2024-07-15" monday
   const yesterday = getPreviousBusinessDay(today);
+  async function markAttendance(attendanceType: string) {
+    try {
+      await addDoc(collection(db, "Attendance"), {
+        date: new Date().toLocaleDateString().split("T")[0],
+        employeeId: userId,
+        attendanceType: attendanceType,
+      });
+    } catch (err) {
+      console.log("err: ", err);
+    }
+  }
   return (
     <ScrollView className="flex-1 bg-[#f3f4f6]">
       <View style={styles.header}>
@@ -125,14 +136,20 @@ const TimeSheet = () => {
           <TouchableOpacity
             className="p-2 px-4 rounded-lg "
             style={{ backgroundColor: colors.buttonSave }}
-            onPress={() => setIsAttendanceMarked(true)}
+            onPress={() => {
+              setIsAttendanceMarked(true);
+              markAttendance("Work from Office");
+            }}
           >
             <Text className="text-white">Working From Office</Text>
           </TouchableOpacity>
           <TouchableOpacity
             className="p-2 px-4 rounded-lg "
             style={{ backgroundColor: colors.textNoData }}
-            onPress={() => setIsAttendanceMarked(true)}
+            onPress={() => {
+              setIsAttendanceMarked(true);
+              markAttendance("Work from Home");
+            }}
           >
             <Text className="text-white">Working From Home</Text>
           </TouchableOpacity>
@@ -195,7 +212,13 @@ const TimeSheet = () => {
       </View>
 
       <TouchableOpacity
-        style={[styles.saveButton, (timeSheetData.description==='' || timeSheetData.time==='' || timeSheetData.projectName==='Select Project') && styles.saveButtonDisabled]}
+        style={[
+          styles.saveButton,
+          (timeSheetData.description === "" ||
+            timeSheetData.time === "" ||
+            timeSheetData.projectName === "Select Project") &&
+            styles.saveButtonDisabled,
+        ]}
         onPress={saveTimeSheet}
         disabled={
           timeSheetData.description === "" ||
@@ -203,41 +226,58 @@ const TimeSheet = () => {
           timeSheetData.projectName === "Select Project"
         }
       >
-        <Text style={[styles.saveButtonText,(timeSheetData.description==='' || timeSheetData.time==='' || timeSheetData.projectName==='Select Project') && styles.saveButtonTextDisabled]}>Save</Text>
+        <Text
+          style={[
+            styles.saveButtonText,
+            (timeSheetData.description === "" ||
+              timeSheetData.time === "" ||
+              timeSheetData.projectName === "Select Project") &&
+              styles.saveButtonTextDisabled,
+          ]}
+        >
+          Save
+        </Text>
       </TouchableOpacity>
 
       <View style={styles.logSection}>
         <Text style={styles.logTitle}>
           {`Your Log Timesheet for ${new Date().getDate()}-${new Date().getUTCMonth()}-${new Date().getFullYear()}`}
         </Text>
-        <View style={styles.tableHeader}>
-          <Text style={styles.tableHeaderText}>Date</Text>
-          <Text style={styles.tableHeaderText}>Project Name</Text>
-          <Text style={styles.tableHeaderText}>Description</Text>
-          <Text style={[styles.tableHeaderText, styles.textRight]}>
-            Total Hours
-          </Text>
-        </View>
-        <View style={styles.tableRow}>
-          {timeSheet.length === 0 ? (
-            <Text style={styles.noDataText}>No data found</Text>
-          ) : (
-            <View className="flex-1 flex-row gap-9">
-              <Text>{timeSheetDate.toLocaleDateString().split("T")[0]}</Text>
-              {timeSheet.map((element, index) => (
-                <Text key={index} className="flex-1">
-                  {element.projectName} {"  "} {element.description}{" "}
-                  {"          "} {element.time}
-                </Text>
-              ))}
-            </View>
-          )}
+        <View className="flex-row overflow-scroll">
+          <View
+            className="flex-col p-6 gap-9 border-r"
+            style={{
+              backgroundColor: colors.backgroundTableHeader,
+              borderRightColor: colors.borderPrimary,
+            }}
+          >
+            <Text style={styles.tableHeaderText}>Date</Text>
+            <Text style={styles.tableHeaderText}>Project Name</Text>
+            <Text style={styles.tableHeaderText}>Description</Text>
+            <Text style={[styles.tableHeaderText]}>Total Hours</Text>
+          </View>
+          <View style={styles.tableRow}>
+            {timeSheet.length === 0 ? (
+              <Text style={styles.noDataText}>No data found</Text>
+            ) : (
+              <View className="flex-1 flex-col gap-9">
+                <Text>{timeSheetDate.toLocaleDateString().split("T")[0]}</Text>
+                {timeSheet.map((element, index) => (
+                  <View key={index}>
+                    <Text className="flex-1">{element.projectName}</Text>
+                    <Text>{element.description}</Text>
+                    <Text>{element.time}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
         </View>
       </View>
     </ScrollView>
   );
 };
-
+export default TimeSheet;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -279,6 +319,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderPrimary,
+    gap: 9,
   },
   tableHeaderText: {
     flex: 1,
@@ -287,7 +328,7 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: "row",
     backgroundColor: colors.backgroundSecondary,
-    padding: 3,
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderPrimary,
     gap: 9,
@@ -357,4 +398,3 @@ const styles = StyleSheet.create({
     opacity: 0.5, // Make text opaque when disabled
   },
 });
-export default TimeSheet;

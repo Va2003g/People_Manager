@@ -49,14 +49,14 @@ export const Dashboard = () => {
         />
         <Text style={styles.text}>Leave Tracker</Text>
       </Pressable>
-      <View style={styles.card}>
+      <Pressable style={styles.card} onPress={()=>router.push(Route.ATTENDANCE)}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <FontAwesome
           name="calendar-check-o"
           style={[styles.mainIcon, { color: "gold" }]}
         />
         <Text style={styles.text}>Attendance</Text>
-      </View>
+      </Pressable>
       <View style={styles.card}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <MaterialCommunityIcons

@@ -17,6 +17,7 @@ export interface formDataType {
   state: string;
   postalCode: string;
   photoURL: string;
+  [key:string]:string;
 }
 interface UserState {
   data: formDataType;
@@ -52,8 +53,11 @@ export const userSlice = createSlice({
       state.id = action.payload;
       console.log('action.payload: ', action.payload)
     },
+    updateUserData:(state,action)=>{
+      console.log(action)
+    }
   },
 });
 
-export const { update,updateId } = userSlice.actions;
+export const { update,updateId,updateUserData } = userSlice.actions;
 export default userSlice.reducer;

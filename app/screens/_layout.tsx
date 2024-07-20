@@ -58,6 +58,13 @@ const DrawerLayout = () => {
           }}
         />
         <Drawer.Screen
+          name='Attendance'
+          options={{
+            drawerLabel: "Attendance",
+            title: "Attendance",
+          }}
+        />
+        <Drawer.Screen
           name="Profile"
           options={{
             drawerLabel: "Profile",
