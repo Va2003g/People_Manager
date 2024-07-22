@@ -57,14 +57,14 @@ export const Dashboard = () => {
         />
         <Text style={styles.text}>Attendance</Text>
       </Pressable>
-      <View style={styles.card}>
+      <Pressable style={styles.card} onPress={()=>router.push(Route.PAY_ROLL)}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <MaterialCommunityIcons
           name="receipt"
           style={[styles.mainIcon, { color: "red" }]}
         />
         <Text style={styles.text}>Pay Roll</Text>
-      </View>
+      </Pressable>
       <View style={styles.card}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <Ionicons

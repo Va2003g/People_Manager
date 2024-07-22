@@ -65,6 +65,13 @@ const DrawerLayout = () => {
           }}
         />
         <Drawer.Screen
+          name='Payroll'
+          options={{
+            drawerLabel: "Payroll",
+            title: "Payroll",
+          }}
+        />
+        <Drawer.Screen
           name="Profile"
           options={{
             drawerLabel: "Profile",

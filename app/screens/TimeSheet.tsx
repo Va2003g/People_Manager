@@ -245,7 +245,7 @@ export const TimeSheet = () => {
         </Text>
         <View className="flex-row overflow-scroll">
           <View
-            className="flex-col p-6 gap-9 border-r"
+            className="flex-col p-6 gap-8 border-r"
             style={{
               backgroundColor: colors.backgroundTableHeader,
               borderRightColor: colors.borderPrimary,
@@ -260,11 +260,11 @@ export const TimeSheet = () => {
             {timeSheet.length === 0 ? (
               <Text style={styles.noDataText}>No data found</Text>
             ) : (
-              <View className="flex-1 flex-col gap-9">
-                <Text>{timeSheetDate.toLocaleDateString().split("T")[0]}</Text>
+              <View className="flex-1 flex-col">
                 {timeSheet.map((element, index) => (
-                  <View key={index}>
-                    <Text className="flex-1">{element.projectName}</Text>
+                  <View key={index} className="flex-1 gap-9">
+                    <Text>{timeSheetDate.toLocaleDateString().split("T")[0]}</Text>
+                    <Text>{element.projectName}</Text>
                     <Text>{element.description}</Text>
                     <Text>{element.time}</Text>
                   </View>
