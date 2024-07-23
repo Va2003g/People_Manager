@@ -14,18 +14,19 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { PDFDocument, rgb } from "pdf-lib";
 import { captureRef } from "react-native-view-shot";
+// import { encode as btoa, decode as atob } from 'base-64';
 import * as arrayBufferToBase64 from "base64-arraybuffer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
 
-interface Payroll {
+export interface Payroll {
   id: string;
   month: string;
   year: number;
   employeeSalaries: EmployeeSalary[];
 }
 
-interface EmployeeSalary {
+export interface EmployeeSalary {
   id: string;
   name: string;
   baseSalary: number;
@@ -35,7 +36,7 @@ interface EmployeeSalary {
   processed: boolean;
 }
 
-const Payroll = () => {
+export const Payroll = () => {
   const employeeID = useSelector((state: RootState) => state.userData.id);
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
   const viewRef = useRef<View>(null);
@@ -64,26 +65,48 @@ const Payroll = () => {
           format: "png",
           quality: 1,
         });
+        console.log("uri: ", uri);
+        try {
+          const fileInfo = await FileSystem.getInfoAsync(uri);
+          console.log("File Info:", fileInfo);
+          if (fileInfo.exists) {
+            console.log("File is accessible");
+          } else {
+            console.log("File does not exist at path:", uri);
+          }
+        } catch (error) {
+          console.error("Error checking file existence:", error);
+        }
 
-        const base64Image = await FileSystem.readAsStringAsync(uri, {
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([600, 800]);
+
+        const pngImageBytes = await FileSystem.readAsStringAsync(uri, {
           encoding: FileSystem.EncodingType.Base64,
         });
+        const pngImage = await pdfDoc.embedPng(pngImageBytes);
 
-        const imageBytes = arrayBufferToBase64.decode(base64Image);
-        const pdfDoc = await PDFDocument.create();
-        const page = pdfDoc.addPage([600, 400]);
-        const pngImage = await pdfDoc.embedPng(imageBytes);
         page.drawImage(pngImage, {
           x: 0,
-          y: 0,
-          height: 400,
+          y: 400,
           width: 600,
+          height: 400,
         });
 
+        page.drawText(`Name: ${salary.name}`, { x: 50, y: 380 });
+        page.drawText(`Month: ${payroll.month}`, { x: 50, y: 360 });
+        page.drawText(`Year: ${payroll.year}`, { x: 50, y: 340 });
+        page.drawText(`Base Salary: ${salary.baseSalary}`, { x: 50, y: 320 });
+        page.drawText(`Deductions: ${salary.deductions}`, { x: 50, y: 300 });
+        page.drawText(`Variable Salary: ${salary.variableSalary}`, {
+          x: 50,
+          y: 280,
+        });
+        page.drawText(`Net Salary: ${salary.netSalary}`, { x: 50, y: 260 });
+
         const pdfBytes = await pdfDoc.save();
-        const base64Pdf = arrayBufferToBase64.encode(pdfBytes);
         const pdfPath = `${FileSystem.documentDirectory}payslip.pdf`;
-        await FileSystem.writeAsStringAsync(pdfPath, base64Pdf, {
+        await FileSystem.writeAsStringAsync(pdfPath, pdfBytes.toString(), {
           encoding: FileSystem.EncodingType.Base64,
         });
 
@@ -97,7 +120,6 @@ const Payroll = () => {
       console.error("Error generating PDF: ", error);
     }
   };
-
   const renderPayroll = ({ item }: { item: Payroll }) => {
     const employeeSalary = item.employeeSalaries.find(
       (salary) => salary.id === employeeID && salary.processed
@@ -138,7 +160,7 @@ const Payroll = () => {
           </View>
         </View>
         <Pressable
-          onPress={() => generatePDF(item, employeeSalary)}
+          onPress={async () => await generatePDF(item, employeeSalary)}
           style={styles.button}
         >
           <Text style={styles.buttonText}>

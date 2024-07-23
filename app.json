@@ -14,7 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.vanshgupta2003.peopleManager"
+      "bundleIdentifier": "com.vanshgupta2003.peopleManager",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app needs access to read files for generating PDFs."
+      }
     },
     "android": {
       "adaptiveIcon": {
