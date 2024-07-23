@@ -1,23 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
-  Alert,
   Pressable,
+  Alert,
+  FlatList,
 } from "react-native";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { db } from "@/backend/Firebase";
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
-import { PDFDocument, rgb } from "pdf-lib";
-import { captureRef } from "react-native-view-shot";
-// import { encode as btoa, decode as atob } from 'base-64';
-import * as arrayBufferToBase64 from "base64-arraybuffer";
 import { useSelector } from "react-redux";
 import { RootState } from "@/Redux/store";
+import { captureRef } from "react-native-view-shot";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "@/backend/Firebase";
+import * as Sharing from "expo-sharing";
+import RNHTMLtoPDF from "react-native-html-to-pdf";
+import { ToWords } from "to-words";
+import { hero, logo } from "@/assets/images";
 
 export interface Payroll {
   id: string;
@@ -58,73 +56,105 @@ export const Payroll = () => {
     fetchPayrolls();
   }, []);
 
-  const generatePDF = async (payroll: Payroll, salary: EmployeeSalary) => {
+  const generatePDF = async (item: Payroll, employeeSalary: EmployeeSalary) => {
+    const toWords = new ToWords({
+      localeCode: "en-IN",
+      converterOptions: {
+        currency: true,
+        ignoreDecimal: false,
+        ignoreZeroCurrency: false,
+      },
+    });
+    const netSalaryInWords = toWords.convert(employeeSalary.netSalary, {
+      currency: true,
+    });
     try {
-      if (viewRef.current) {
-        const uri = await captureRef(viewRef, {
-          format: "png",
-          quality: 1,
-        });
-        console.log("uri: ", uri);
-        try {
-          const fileInfo = await FileSystem.getInfoAsync(uri);
-          console.log("File Info:", fileInfo);
-          if (fileInfo.exists) {
-            console.log("File is accessible");
-          } else {
-            console.log("File does not exist at path:", uri);
-          }
-        } catch (error) {
-          console.error("Error checking file existence:", error);
-        }
+      const htmlContent = `
+        <html>
+  <head>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+      .container { border: 1px solid #ccc; padding: 20px; }
+      .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+      .company-name { font-size: 18px; font-weight: bold; }
+      .logo { width: 100px; height: 100px; }
+      .title { font-size: 16px; font-weight: bold; margin-bottom: 15px; }
+      .employee-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+      .detail-item { font-size: 12px; }
+      .net-pay { background-color: #f0f0f0; padding: 10px; text-align: right; margin-bottom: 20px; }
+      .net-pay-amount { font-size: 24px; font-weight: bold; color: #4CAF50; }
+      .earnings-deductions { display: flex; justify-content: space-between; margin-bottom: 20px; }
+      .section { width: 48%; }
+      .section-title { font-weight: bold; margin-bottom: 10px; font-size: 14px; }
+      .item { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+      .total { border-top: 1px solid #ccc; padding-top: 5px; font-weight: bold; }
+      .net-payable { background-color: #e8f5e9; padding: 10px; font-weight: bold; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="company-name">GeekyAnts India Private Limited</div>
+        <img src=${logo} alt="GeekyAnts Logo" class="logo">
+      </div>
+      <div class="title">Payslip for the month of ${item.month} ${
+        item.year
+      }</div>
+      <div class="employee-details">
+        <div class="detail-item">Employee Name: ${employeeSalary.name}</div>
+        <div class="detail-item">Employee Net Pay</div>
+        <div class="detail-item net-pay-amount">₹${
+          employeeSalary.netSalary
+        }</div>
+        <div class="detail-item">Pay Period: ${item.month} ${item.year}</div>
+      </div>
+      <div class="earnings-deductions">
+        <div class="section">
+          <div class="section-title">Earnings</div>
+          <div class="item"><span>Basic</span><span>₹${
+            employeeSalary.baseSalary
+          }</span></div>
+          <div class="item"><span>Food Allowance</span><span>₹${
+            employeeSalary.deductions || "2,200.00"
+          }</span></div>
+          <div class="item"><span>Fixed Allowance</span><span>₹${
+            employeeSalary.variableSalary || "1,950.00"
+          }</span></div>
+          <div class="item total"><span>Gross Earnings</span><span>₹${
+            employeeSalary.netSalary || "25,000.00"
+          }</span></div>
+        </div>
+      </div>
+      <div class="net-payable">Total Net Payable ₹${
+        employeeSalary.netSalary
+      } (Indian Rupee ${
+        netSalaryInWords || "Twenty-Two Thousand Two Hundred Eighty-Three Only"
+      })</div>
+    </div>
+  </body>
+</html>
+      `;
 
-        const pdfDoc = await PDFDocument.create();
-        const page = pdfDoc.addPage([600, 800]);
+      const options = {
+        html: htmlContent,
+        fileName: `Payslip_${item.month}_${item.year}`,
+        directory: "Documents",
+      };
 
-        const pngImageBytes = await FileSystem.readAsStringAsync(uri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        const pngImage = await pdfDoc.embedPng(pngImageBytes);
-
-        page.drawImage(pngImage, {
-          x: 0,
-          y: 400,
-          width: 600,
-          height: 400,
-        });
-
-        page.drawText(`Name: ${salary.name}`, { x: 50, y: 380 });
-        page.drawText(`Month: ${payroll.month}`, { x: 50, y: 360 });
-        page.drawText(`Year: ${payroll.year}`, { x: 50, y: 340 });
-        page.drawText(`Base Salary: ${salary.baseSalary}`, { x: 50, y: 320 });
-        page.drawText(`Deductions: ${salary.deductions}`, { x: 50, y: 300 });
-        page.drawText(`Variable Salary: ${salary.variableSalary}`, {
-          x: 50,
-          y: 280,
-        });
-        page.drawText(`Net Salary: ${salary.netSalary}`, { x: 50, y: 260 });
-
-        const pdfBytes = await pdfDoc.save();
-        const pdfPath = `${FileSystem.documentDirectory}payslip.pdf`;
-        await FileSystem.writeAsStringAsync(pdfPath, pdfBytes.toString(), {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(pdfPath);
-        } else {
-          Alert.alert("Error", "Sharing is not available on this device");
-        }
-      }
+      const pdf = await RNHTMLtoPDF.convert(options);
+      await Sharing.shareAsync(pdf.filePath);
     } catch (error) {
+      Alert.alert("Error", "Failed to generate PDF");
       console.error("Error generating PDF: ", error);
     }
   };
+
   const renderPayroll = ({ item }: { item: Payroll }) => {
     const employeeSalary = item.employeeSalaries.find(
       (salary) => salary.id === employeeID && salary.processed
     );
     if (!employeeSalary) return null;
+
     return (
       <View>
         <View style={styles.payrollItem} ref={viewRef}>
@@ -160,7 +190,7 @@ export const Payroll = () => {
           </View>
         </View>
         <Pressable
-          onPress={async () => await generatePDF(item, employeeSalary)}
+          onPress={() => generatePDF(item, employeeSalary)}
           style={styles.button}
         >
           <Text style={styles.buttonText}>
