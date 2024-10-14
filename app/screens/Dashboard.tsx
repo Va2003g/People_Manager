@@ -12,9 +12,9 @@ import { router } from "expo-router";
 import { Route } from "@/routes";
 
 export const Dashboard = () => {
-  useEffect(()=>{
+  // useEffect(()=>{
     
-  },[])
+  // },[])
   return (
     <View style={styles.container}>
       <Pressable style={styles.card} onPress={()=>router.push(Route.PROJECT)}>
@@ -65,7 +65,7 @@ export const Dashboard = () => {
         />
         <Text style={styles.text}>Pay Roll</Text>
       </Pressable>
-      <View style={styles.card}>
+      {/* <View style={styles.card}>
         <AntDesign name="infocirlceo" style={styles.infoIcon} />
         <Ionicons
           name="receipt-outline"
@@ -80,7 +80,7 @@ export const Dashboard = () => {
           style={[styles.mainIcon, { color: "limegreen" }]}
         />
         <Text style={styles.text}>Announcements</Text>
-      </View>
+      </View> */}
     </View>
   );
 };
@@ -95,7 +95,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent:'space-around',
-    alignContent:'space-around'
+    // alignContent:'space-around'
+    alignContent:'space-evenly'
   },
   card: {
     width: 153,

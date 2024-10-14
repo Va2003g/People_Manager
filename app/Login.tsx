@@ -27,7 +27,7 @@ const Login = ({ promptAsync }: promptAsyncProp) => {
         </View>
         <View className="flex-1 pl-[30] pr-[30]">
           <Image
-            source={logo}
+            // source={logo}
             style={{ height: 100, width: 200 }}
             contentFit="contain"
           />
